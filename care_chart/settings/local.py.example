@@ -1,0 +1,157 @@
+"""
+Example settings for local development
+
+Use this file as a base for your local development settings and copy
+it to {{ project_name }}/settings/local.py. It should not be checked into
+your code repository.
+
+"""
+from {{ project_name }}.settings.base import *   # pylint: disable=W0614,W0401
+
+#==============================================================================
+# Debug settings
+#==============================================================================
+
+DEBUG = True
+TEMPLATE_DEBUG = DEBUG
+DEBUG_TOOLBAR = DEBUG
+COMPRESS_ENABLED = DEBUG
+
+#==============================================================================
+# Database settings
+#==============================================================================
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(VAR_ROOT, 'dev.db'),
+        'USER': '',
+        'PASSWORD': '',
+        'PORT': '',
+    }
+}
+
+#==============================================================================
+# Cache settings
+#==============================================================================
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+        'KEY_PREFIX': '{{ project_name }}'
+    }
+}
+
+#==============================================================================
+# Email settings
+#==============================================================================
+
+EMAIL_HOST = 'localhost'
+
+#==============================================================================
+# Logging settings
+#==============================================================================
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'formatters': {
+        'verbose': {
+            'format': '[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s',
+        },
+        'json': {
+            '()': '{{ project_name }}.utils.logging.formatters.JSONFormatter',
+        },
+    },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+    },
+    'handlers': {
+        'null': {
+            'class': 'django.utils.log.NullHandler',
+        },
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'rotating_file': {
+            'level': 'DEBUG',
+            'filters': [],
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'json',
+            'encoding': 'utf8',
+            'filename': os.path.join(VAR_ROOT, 'log', 'app.json.log'),
+            'maxBytes': (1024 * 1024) * 10,  #  50MB
+            'backupCount': 1,
+        },
+        'watched_file': {
+            'level': 'DEBUG',
+            'filters': [],
+            'class': 'logging.handlers.WatchedFileHandler',
+            'formatter': 'json',
+            'encoding': 'utf8',
+            'filename': os.path.join(VAR_ROOT, 'log', 'app.json.log'),
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
+            'class': 'django.utils.log.AdminEmailHandler'
+        },
+    },
+    'root': {
+        'handlers': ['mail_admins', 'console', 'rotating_file'],
+        'level': 'DEBUG',
+    },
+    'loggers': {
+        # Define more specific logger here
+    },
+}
+
+#==============================================================================
+# Security settings
+#==============================================================================
+
+SECRET_KEY = '{{ secret_key }}'
+
+SSL = False
+
+#==============================================================================
+# HTTP proxy settings
+#==============================================================================
+
+# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTOCOL', 'https')
+# See https://docs.djangoproject.com/en/1.4/ref/settings/#secure-proxy-ssl-header
+
+#==============================================================================
+# Celery settings
+#==============================================================================
+
+BROKER_URL = 'redis://'
+
+CELERY_RESULT_BACKEND = 'redis://'
+
+CELERY_ALWAYS_EAGER = DEBUG
+
+CELERY_EAGER_PROPAGATES_EXCEPTIONS = CELERY_ALWAYS_EAGER
+
+#==============================================================================
+# Conditional settings
+#==============================================================================
+
+if DEBUG_TOOLBAR:
+    INSTALLED_APPS += ('debug_toolbar',)
+    MIDDLEWARE_CLASSES += ('debug_toolbar.middleware.DebugToolbarMiddleware',)
+
+if SSL:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True
+    WAFFLE_SECURE = True
+    # SECURE_HSTS_SECONDS =
+
+#==============================================================================
+# Miscellaneous project settings
+#==============================================================================
